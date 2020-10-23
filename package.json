@@ -1,0 +1,10 @@
+{
+    "name": "socket-drone-flight",
+    "version": "0.0.1",
+    "description": "Drone flight support socket server",
+    "dependencies": {
+        "@googlemaps/google-maps-services-js": "^3.1.13",
+        "express": "^4.15.2",
+        "socket.io": "^2.3.0"
+    }
+}

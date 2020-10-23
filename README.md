@@ -1,8 +1,7 @@
-# Drone API server
-API services support drone flight
+# A socket server support drone flight
 
-## Install Laravel
-https://laravel.com/docs/8.x/installation
+## Start the server
+node server.js
 
-## Testing server
-http://droneserver.dq.hk/
+## Client browser
+http://localhost:3000
