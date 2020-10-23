@@ -1,3 +1,5 @@
+var config = require('./config.js');
+
 var app = require('express')();
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
@@ -30,7 +32,7 @@ io.on('connection', (socket) => {
                 params: {
                     path: [data.home + "|" + data.drone],
                     samples: 500,
-                    key: "AIzaSyD0HYlt9qi-a3bBwvuF8V3XESsxOiU1ZK0", /* key from travmix */
+                    key: config.GOOGLE_API_KEY, 
                 },
                 timeout: 1000, // milliseconds
             })
