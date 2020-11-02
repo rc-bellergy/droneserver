@@ -24,6 +24,7 @@ io.on('connection', (socket) => {
         io.emit('get_rtl_altitude', data);
         console.log('Receive get_rtl_altitude: ' + JSON.stringify(data));
 
+        // Using Google Map elevation API to get the elevations on the RTL path
         map.elevation({
             params: {
                 path: [data.home + "|" + data.drone],
@@ -33,10 +34,20 @@ io.on('connection', (socket) => {
             timeout: 1000, // milliseconds
         })
         .then((r) => {
-            // console.log(r.data.results[0].elevation);
-            var max_alt = Math.max.apply(Math, r.data.results.map(function(o) { return o.elevation; }));
-            io.emit('set_rtl_altitude', max_alt);
-            console.log("Send set_rtl_altitude:", max_alt);
+            // console.log(r.data.results[0]);
+            var results = r.data.results;
+            var maxAlt = results[0];
+            for (var i=1; i<results.length; i++) {
+                maxAlt = maxAlt.elevation > results[i].elevation ? maxAlt : results[i];
+            }
+            var result = {
+                "max_alt": maxAlt,
+                "drone": {
+                    "location": [ Number(data.drone.split(',')[1]), Number(data.drone.split(',')[0]) ]
+                }
+            }
+            io.emit('set_rtl_altitude', result);
+            console.log("Send set_rtl_altitude:", result);
         })
         .catch((e) => {
             console.log(e.response.data.error_message);
