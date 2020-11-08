@@ -7,7 +7,8 @@ var http = require('http').createServer(app);
 var io = require('socket.io')(http);
 var map = new Client({});
 var serverLog = new Log('server.log');
-var eventLog = new Log('events.log')
+var eventLog = new Log('events.log');
+var homeLocation;
 
 // create the client page
 app.get('/', (req, res) => {
@@ -18,18 +19,29 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
     // console.log(socket);
     var user = socket.handshake.address.split(':')[3];
-    serverLog.log(user +' connected');
+    var msg = user +' connected';
+    serverLog.log(msg);
+    io.emit('message', msg);
+
+    // Update drone's home location
+    socket.on('update_home_location', (data) => {
+        io.emit('update_home_location', data);
+        homeLocation = data;
+        eventLog.event(data, 'update_home_location');
+    })
 
     // Input two locations to create a path, emit the "max alt" of the path
     // Data format: lat1,lon1|lat2,lon2
-    socket.on('get_rtl_altitude', (data) => {
-        io.emit('get_rtl_altitude', data);
-        eventLog.log(user + ',receive,get_rtl_altitude,' + JSON.stringify(data));
+    socket.on('update_drone_location', (data) => {
+        io.emit('update_drone_location', data);
+        eventLog.event(data, "update_drone_location");
 
         // Using Google Map elevation API to get the elevations on the RTL path
+        path = homeLocation.lat + "," + homeLocation.lon + "|" + data.lat + "," + data.lon;
+        // console.log(path);
         map.elevation({
             params: {
-                path: [data.home + "|" + data.drone],
+                path: [path],
                 samples: 500, // TODO: change the samples by distance of the path
                 key: config.GOOGLE_API_KEY, 
             },
@@ -42,17 +54,16 @@ io.on('connection', (socket) => {
             for (var i=1; i<results.length; i++) {
                 maxAlt = maxAlt.elevation > results[i].elevation ? maxAlt : results[i];
             }
-            var result = {
-                "max_alt": maxAlt,
-                "drone": {
-                    "location": [ Number(data.drone.split(',')[1]), Number(data.drone.split(',')[0]) ]
-                }
-            }
-            io.emit('set_rtl_altitude', result);
-            eventLog.log('droneserver,send,set_rtl_altitude,' + result);
+            // var result = {
+            //     "max_alt": { 'lat': maxAlt.lat, 'lon': maxAlt.lon, 'alt': maxAlt.elevation },
+            //     "drone": data
+            // }
+            io.emit('set_rtl_altitude', maxAlt);
+            eventLog.event(maxAlt, 'set_rtl_altitude');
         })
         .catch((e) => {
-            eventLog.log('droneserver,error,set_rtl_altitude,' + e.response.data.error_message);
+            console.log(e);
+            // eventLog.log('droneserver,error,set_rtl_altitude,' + e.response.data.error_message);
         });
         
     });

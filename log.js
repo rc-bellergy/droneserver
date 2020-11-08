@@ -6,7 +6,21 @@ module.exports = class Log {
         this.logFile = fs.createWriteStream(config.LOG_FILE_PATH + file, {flags : 'w'});
     }
     log(data) {
-        this.logFile.write(Date.now() + ',' + data + '\n');
-        console.log(data);
+        var log = new Date().toISOString() + ", ";
+        log += data + "\n";
+        this.logFile.write(log);
+        console.log(log);
     }
+
+    event(data, event="") {
+        var log = new Date().toISOString() + ", ";
+        log += event + ", ";
+        if (typeof(data) == "object") {
+            data = JSON.stringify(data);
+        }
+        log += data + "\n";
+        this.logFile.write(log);
+        console.log(log);
+    }
+
 }
