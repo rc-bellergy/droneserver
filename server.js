@@ -1,11 +1,13 @@
-const config = require('./config.js');
-const Log = require('./log.js');
-const { Client } = require("@googlemaps/google-maps-services-js");
+import { Client } from '@googlemaps/google-maps-services-js';
+import { config } from './config.js';
+import Express from 'express';
+import Http from 'http';
+import Socket from 'socket.io';
+import Log from './log.js';
 
-var app = require('express')();
-var http = require('http').createServer(app);
-var io = require('socket.io')(http);
-var map = new Client({});
+var app = new Express();
+var server = Http.createServer(app);
+var io = new Socket(server);
 var serverLog = new Log('server.log');
 var eventLog = new Log('events.log');
 var homeLocation;
@@ -73,6 +75,6 @@ io.on('connection', (socket) => {
     });
 });
 
-http.listen(3000, () => {
+server.listen(3000, () => {
     serverLog.log('Server listening on *:3000');
 });
