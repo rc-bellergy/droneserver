@@ -32,12 +32,12 @@ io.on('connection', (socket) => {
 
     // Input two locations to create a path, emit the "max alt" of the path
     // Data format: lat1,lon1|lat2,lon2
-    socket.on('update_drone_location', (data) => {
-        io.emit('update_drone_location', data);
-        eventLog.event(data, "update_drone_location");
+    socket.on('update_drone_location', (droneLocation) => {
+        io.emit('update_drone_location', droneLocation);
+        eventLog.event(droneLocation, "update_drone_location");
 
         // Using Google Map elevation API to get the elevations on the RTL path
-        path = homeLocation.lat + "," + homeLocation.lon + "|" + data.lat + "," + data.lon;
+        path = homeLocation.lat + "," + homeLocation.lon + "|" + droneLocation.lat + "," + droneLocation.lon;
         // console.log(path);
         map.elevation({
             params: {
@@ -54,11 +54,11 @@ io.on('connection', (socket) => {
             for (var i=1; i<results.length; i++) {
                 maxAlt = maxAlt.elevation > results[i].elevation ? maxAlt : results[i];
             }
-            // var result = {
-            //     "max_alt": { 'lat': maxAlt.lat, 'lon': maxAlt.lon, 'alt': maxAlt.elevation },
-            //     "drone": data
-            // }
-            io.emit('set_rtl_altitude', maxAlt);
+            variable            io.emit('set_rtl_altitude', maxAlt);
+            io.emit('update_gcs', {
+                "max_alt":maxAlt,
+                "drone":droneLocation
+            })
             eventLog.event(maxAlt, 'set_rtl_altitude');
         })
         .catch((e) => {

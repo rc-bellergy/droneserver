@@ -18,11 +18,14 @@
     <script>
         window.onload = (event) => {
             var socket = io();
+
+            // TODO: echo data from all events
             socket.on('message', function(data){
               document.getElementById('messages');
               
               console.log(data);
             });
+            
         };
     </script>
   </body>
