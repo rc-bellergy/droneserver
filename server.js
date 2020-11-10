@@ -3,6 +3,7 @@ import { config } from './config.js';
 import Express from 'express';
 import Http from 'http';
 import Socket from 'socket.io';
+import LatLon from 'geodesy/latlon-spherical.js';
 import Log from './log.js';
 
 var app = new Express();
@@ -34,17 +35,25 @@ io.on('connection', (socket) => {
 
     // Input two locations to create a path, emit the "max alt" of the path
     // Data format: lat1,lon1|lat2,lon2
-    socket.on('update_drone_location', (data) => {
-        io.emit('update_drone_location', data);
-        eventLog.event(data, "update_drone_location");
+    socket.on('update_drone_location', (drone) => {
+        io.emit('update_drone_location', drone);
+        eventLog.event(drone, "update_drone_location");
+
+        // calculate distance
+        const h = new LatLon(homeLocation.lat, homeLocation.lon);
+        const d = new LatLon(drone.lat, drone.lon);
+        const distance = p1.distanceTo(p2);
+        const samples = Math.floor(distance / 10)
+        sample = sample > 500 ? 500 : sample;
 
         // Using Google Map elevation API to get the elevations on the RTL path
-        path = homeLocation.lat + "," + homeLocation.lon + "|" + data.lat + "," + data.lon;
+        const path = homeLocation.lat + "," + homeLocation.lon + "|" + drone.lat + "," + drone.lon;
+
         // console.log(path);
         map.elevation({
             params: {
                 path: [path],
-                samples: 500, // TODO: change the samples by distance of the path
+                samples: sample, // TODO: change the samples by distance of the path
                 key: config.GOOGLE_API_KEY, 
             },
             timeout: 1000, // milliseconds
@@ -56,16 +65,20 @@ io.on('connection', (socket) => {
             for (var i=1; i<results.length; i++) {
                 maxAlt = maxAlt.elevation > results[i].elevation ? maxAlt : results[i];
             }
-            // var result = {
-            //     "max_alt": { 'lat': maxAlt.lat, 'lon': maxAlt.lon, 'alt': maxAlt.elevation },
-            //     "drone": data
-            // }
-            io.emit('set_rtl_altitude', maxAlt);
+            io.emit('set_rtl_altitude', maxAlt.elevation);
             eventLog.event(maxAlt, 'set_rtl_altitude');
+
+            var result = {
+                "max_alt": { 'lat': maxAlt.lat, 'lon': maxAlt.lon, 'alt': maxAlt.elevation },
+                "drone": data
+            }
+            io.emit('update_drone_location', maxAlt.elevation);
+            eventLog.event(maxAlt, 'update_drone_location');
+
         })
         .catch((e) => {
             console.log(e);
-            // eventLog.log('droneserver,error,set_rtl_altitude,' + e.response.data.error_message);
+            serverLog.log('google map api elevation error' + e.response.data.error_message);
         });
         
     });
