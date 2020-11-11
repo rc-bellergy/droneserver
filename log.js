@@ -1,7 +1,7 @@
-const fs = require('fs');
-const config = require('./config.js');
+import fs from 'fs';
+import { config } from './config.js';
 
-module.exports = class Log {
+export default class Log {
     constructor(file) {
         this.logFile = fs.createWriteStream(config.LOG_FILE_PATH + file, {flags : 'w'});
     }
