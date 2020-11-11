@@ -6,9 +6,16 @@ import Socket from 'socket.io';
 import LatLon from 'geodesy/latlon-spherical.js';
 import Log from './log.js';
 
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 var app = new Express();
 var server = Http.createServer(app);
 var io = new Socket(server);
+var map = new Client({});
+
 var serverLog = new Log('server.log');
 var eventLog = new Log('events.log');
 var homeLocation;
@@ -27,33 +34,34 @@ io.on('connection', (socket) => {
     io.emit('message', msg);
 
     // Update drone's home location
-    socket.on('update_home_location', (data) => {
-        io.emit('update_home_location', data);
+    socket.on('home_location_updated', (data) => {
+        io.emit('home_location_updated', data);
         homeLocation = data;
-        eventLog.event(data, 'update_home_location');
+        eventLog.event(data, 'home_location_updated');
     })
 
     // Input two locations to create a path, emit the "max alt" of the path
     // Data format: lat1,lon1|lat2,lon2
-    socket.on('update_drone_location', (drone) => {
-        io.emit('update_drone_location', drone);
-        eventLog.event(drone, "update_drone_location");
+    socket.on('drone_location_updated', (drone) => {
+        io.emit('drone_location_updated', drone);
+        eventLog.event(drone, "drone_location_updated");
 
         // calculate distance
-        const h = new LatLon(homeLocation.lat, homeLocation.lon);
-        const d = new LatLon(drone.lat, drone.lon);
-        const distance = p1.distanceTo(p2);
-        const samples = Math.floor(distance / 10)
-        sample = sample > 500 ? 500 : sample;
+        var p1 = new LatLon(homeLocation.lat, homeLocation.lon);
+        var p2 = new LatLon(drone.lat, drone.lon);
+        var distance = p1.distanceTo(p2);
+        var samples = Math.floor(distance / 10)
+        samples = samples > 500 ? 500 : samples;
+        samples = samples < 1 ? 1 : samples;
 
         // Using Google Map elevation API to get the elevations on the RTL path
-        const path = homeLocation.lat + "," + homeLocation.lon + "|" + drone.lat + "," + drone.lon;
+        var path = homeLocation.lat + "," + homeLocation.lon + "|" + drone.lat + "," + drone.lon;
 
         // console.log(path);
         map.elevation({
             params: {
                 path: [path],
-                samples: sample, // TODO: change the samples by distance of the path
+                samples: samples, // TODO: change the samples by distance of the path
                 key: config.GOOGLE_API_KEY, 
             },
             timeout: 1000, // milliseconds
@@ -65,15 +73,14 @@ io.on('connection', (socket) => {
             for (var i=1; i<results.length; i++) {
                 maxAlt = maxAlt.elevation > results[i].elevation ? maxAlt : results[i];
             }
-            io.emit('set_rtl_altitude', maxAlt.elevation);
-            eventLog.event(maxAlt, 'set_rtl_altitude');
+            io.emit('rtl_altitude_updated', maxAlt.elevation);
+            eventLog.event(maxAlt.elevation, 'rtl_altitude_updated');
 
-            var result = {
+            io.emit('drone_location_updated', {
                 "max_alt": { 'lat': maxAlt.lat, 'lon': maxAlt.lon, 'alt': maxAlt.elevation },
-                "drone": data
-            }
-            io.emit('update_drone_location', maxAlt.elevation);
-            eventLog.event(maxAlt, 'update_drone_location');
+                "drone": drone
+            });
+            eventLog.event(maxAlt, 'drone_location_updated');
 
         })
         .catch((e) => {

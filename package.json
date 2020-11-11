@@ -5,6 +5,7 @@
     "type": "module",
     "dependencies": {
         "@googlemaps/google-maps-services-js": "^3.1.13",
+        "esm": "^3.2.25",
         "express": "^4.15.2",
         "geodesy": "^2.2.1",
         "socket.io": "^2.3.0"
