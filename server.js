@@ -27,7 +27,7 @@ app.get('/', (req, res) => {
 
 // When user connected
 io.on('connection', (socket) => {
-    // console.log(socket);
+    // console.log(socket); 
     var user = socket.handshake.address.split(':')[3];
     var msg = user +' connected';
     serverLog.log(msg);
@@ -76,13 +76,14 @@ io.on('connection', (socket) => {
             }
 
             io.emit('rtl_altitude_updated', maxAlt.elevation);
-            eventLog.event(maxAlt.elevation, 'rtl_altitude_updated');
+            eventLog.event(maxAlt.elevation, 'rtl_altitude_updated (samples:' + samples +')');
 
-            io.emit('drone_location_updated', {
-                "max_alt": { 'lat': maxAlt.lat, 'lon': maxAlt.lon, 'alt': maxAlt.elevation },
-                "drone": drone
-            });
-            eventLog.event(maxAlt, 'drone_location_updated');
+
+            // io.emit('drone_location_updated', {
+            //     "max_alt": { 'lat': maxAlt.lat, 'lon': maxAlt.lon, 'alt': maxAlt.elevation },
+            //     "drone": drone
+            // });
+            // eventLog.event(maxAlt, 'drone_location_updated');
 
         })
         .catch((e) => {

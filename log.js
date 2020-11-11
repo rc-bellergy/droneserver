@@ -7,8 +7,8 @@ export default class Log {
     }
     log(data) {
         var log = new Date().toISOString() + ", ";
-        log += data + "\n";
-        this.logFile.write(log);
+        log += data;
+        this.logFile.write(log+ "\n");
         console.log(log);
     }
 
@@ -18,8 +18,8 @@ export default class Log {
         if (typeof(data) == "object") {
             data = JSON.stringify(data);
         }
-        log += data + "\n";
-        this.logFile.write(log);
+        log += data;
+        this.logFile.write(log+ "\n");
         console.log(log);
     }
 
