@@ -18,6 +18,7 @@
     <script>
         window.onload = (event) => {
             var socket = io();
+            socket.emit('message', 'Hello from console!');
 
             // TODO: echo data from all events
             socket.on('message', function(data){

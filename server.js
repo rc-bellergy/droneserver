@@ -27,11 +27,20 @@ app.get('/', (req, res) => {
 
 // When user connected
 io.on('connection', (socket) => {
+
+    io.emit('connect', 'welcome to droneserver');
+
     // console.log(socket); 
     var user = socket.handshake.address.split(':')[3];
     var msg = user +' connected';
     serverLog.log(msg);
-    io.emit('message', msg);
+    // io.emit('message', msg);
+
+    // Handle general message
+    socket.on('message', (data) => {
+        io.emit('message', data);
+        serverLog.log(data);
+    })
 
     // Update drone's home location
     socket.on('home_location_updated', (data) => {
@@ -62,7 +71,7 @@ io.on('connection', (socket) => {
         map.elevation({
             params: {
                 path: [path],
-                samples: samples, // TODO: change the samples by distance of the path
+                samples: samples,
                 key: config.GOOGLE_API_KEY, 
             },
             timeout: 1000, // milliseconds
@@ -77,7 +86,6 @@ io.on('connection', (socket) => {
 
             io.emit('rtl_altitude_updated', maxAlt.elevation);
             eventLog.event(maxAlt.elevation, 'rtl_altitude_updated (samples:' + samples +')');
-
 
             // io.emit('drone_location_updated', {
             //     "max_alt": { 'lat': maxAlt.lat, 'lon': maxAlt.lon, 'alt': maxAlt.elevation },

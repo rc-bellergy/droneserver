@@ -8,6 +8,10 @@
         "esm": "^3.2.25",
         "express": "^4.15.2",
         "geodesy": "^2.2.1",
-        "socket.io": "^2.3.0"
+        "socket.io": "^2.3.0",
+        "socket.io-client": "^3.0.1"
+    },
+    "devDependencies": {
+        "mocha": "^8.2.1"
     }
 }
