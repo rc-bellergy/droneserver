@@ -28,13 +28,10 @@ app.get('/', (req, res) => {
 // When user connected
 io.on('connection', (socket) => {
 
-    io.emit('connect', 'welcome to droneserver');
-
     // console.log(socket); 
-    var user = socket.handshake.address.split(':')[3];
+    var user = socket.handshake.query.user;
     var msg = user +' connected';
     serverLog.log(msg);
-    // io.emit('message', msg);
 
     // Handle general message
     socket.on('message', (data) => {
@@ -60,44 +57,54 @@ io.on('connection', (socket) => {
         var p1 = new LatLon(homeLocation.lat, homeLocation.lon);
         var p2 = new LatLon(drone.lat, drone.lon);
         var distance = p1.distanceTo(p2);
-        var samples = Math.floor(distance / 10)
-        samples = samples > 500 ? 500 : samples;
-        samples = samples < 1 ? 1 : samples;
+        var samples = Math.floor(distance / 10);
+        if (samples > 0) {
 
-        // Using Google Map elevation API to get the elevations on the RTL path
-        var path = homeLocation.lat + "," + homeLocation.lon + "|" + drone.lat + "," + drone.lon;
+            samples = samples > 500 ? 500 : samples;
 
-        // console.log(path);
-        map.elevation({
-            params: {
-                path: [path],
-                samples: samples,
-                key: config.GOOGLE_API_KEY, 
-            },
-            timeout: 1000, // milliseconds
-        })
-        .then((r) => {
-            // console.log(r.data.results[0]);
-            var results = r.data.results;
-            var maxAlt = results[0];
-            for (var i=1; i<results.length; i++) {
-                maxAlt = maxAlt.elevation > results[i].elevation ? maxAlt : results[i];
-            }
+            // Using Google Map elevation API to get the elevations on the RTL path
+            var path = homeLocation.lat + "," + homeLocation.lon + "|" + drone.lat + "," + drone.lon;
 
-            io.emit('rtl_altitude_updated', maxAlt.elevation);
-            eventLog.event(maxAlt.elevation, 'rtl_altitude_updated (samples:' + samples +')');
+            // console.log(path);
+            map.elevation({
+                params: {
+                    path: [path],
+                    samples: samples,
+                    key: config.GOOGLE_API_KEY, 
+                },
+                timeout: 1000, // milliseconds
+            })
+            .then((r) => {
+                // console.log(r.data.results[0]);
+                var results = r.data.results;
+                var maxAlt = results[0];
+                for (var i=1; i<results.length; i++) {
+                    maxAlt = maxAlt.elevation > results[i].elevation ? maxAlt : results[i];
+                }
+                
+                // Send max-alt to drone
+                io.emit('rtl_altitude_updated', maxAlt.elevation);
+                // eventLog.event('alt:' + maxAlt.elevation + ' samples:' + samples, 'rtl_altitude_updated');
 
-            // io.emit('drone_location_updated', {
-            //     "max_alt": { 'lat': maxAlt.lat, 'lon': maxAlt.lon, 'alt': maxAlt.elevation },
-            //     "drone": drone
-            // });
-            // eventLog.event(maxAlt, 'drone_location_updated');
+                // Send full data to flightvie
+                var data = {
+                    "max_alt": {
+                        "alt":maxAlt.elevation,
+                        "let":maxAlt.location.lat,
+                        "lon":maxAlt.location.lng,
+                        "samples":samples
+                    },
+                    "drone": drone
+                }
+                io.emit('full_rtl_altitude_updated', data);
+                eventLog.event(data, 'full_rtl_altitude_updated');
 
-        })
-        .catch((e) => {
-            console.log(e);
-            serverLog.log('google map api elevation error' + e.response.data.error_message);
-        });
+            })
+            .catch((e) => {
+                console.log(e);
+                serverLog.log('google map api elevation error' + e.response.data.error_message);
+            });
+        }
         
     });
 

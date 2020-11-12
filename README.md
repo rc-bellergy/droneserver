@@ -56,3 +56,7 @@ RestartSec=3
 [Install]
 WantedBy=multi-user.target
 ```
+
+---
+## References:
+[Geodesy Library](https://www.movable-type.co.uk/scripts/geodesy-library.html)
