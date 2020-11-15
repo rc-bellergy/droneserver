@@ -2,6 +2,8 @@
 
 import asyncio
 import socketio
+import random
+
 
 droneserver = 'http://droneserver.zt:3000?user=Dummy-Drone'
 
@@ -15,14 +17,15 @@ async def run():
     location = { "lat": 22.309058, "lon": 114.304060, "alt": 19.5 }
     await sio.emit('home_location_updated', location)
 
-    drone_location = { "lat": 22.309058, "lon": 114.304060 }
+    drone_location = { "lat": 22.309058, "lon": 114.304060, "alt": 50, "heading": 270 }
     while True:
         # Update drone location
         # location = { "lat": 22.307990, "lon": 114.301596 }
         await sio.emit('drone_location_updated', drone_location)
         
-        drone_location['lat'] = drone_location['lat'] + 0.00002
-        drone_location['lon'] = drone_location['lon'] + 0.00002
+        drone_location['lat'] = drone_location['lat'] - 0.00005
+        drone_location['lon'] = drone_location['lon'] - 0.00005
+        drone_location['heading'] = drone_location['heading'] + 25
 
         await asyncio.sleep(2)
 
