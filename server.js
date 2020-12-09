@@ -39,7 +39,7 @@ io.on('connection', (socket) => {
         serverLog.log(data);
     })
 
-    // Update drone's home location
+    // The drone's home location updated
     socket.on('home_location_updated', (data) => {
         io.emit('home_location_updated', data);
         homeLocation = data;
