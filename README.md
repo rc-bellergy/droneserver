@@ -68,3 +68,53 @@ WantedBy=multi-user.target
 ---
 ## References:
 [Geodesy Library](https://www.movable-type.co.uk/scripts/geodesy-library.html)
+
+
+## Using the Mapbox API get building height (server-side)
+
+https://docs.mapbox.com/api/maps/tilequery/
+
+## Retrieve features from vector tiles
+
+/v4/{tileset_id}/tilequery/{lon},{lat}.json
+
+### Sample: Get 平善樓 Ping Sin House infomation
+```sh
+curl "https://api.mapbox.com/v4/mapbox.mapbox-streets-v8/tilequery/114.23623241544855,22.307360431666915.json?radius=10&layers=building&access_token=pk.eyJ1IjoiZHFtaWNoYWVsIiwiYSI6ImNrZ2hodGlxMjBiZmszMHBnYmlrdGU4OTEifQ.g_yEmozIITINLVoEtDXCag"
+```
+### Return JSON
+```json
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "id": 121701404,
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    114.23623241544855,
+                    22.307360431666915
+                ]
+            },
+            "properties": {
+                "extrude": "true",
+                "iso_3166_1": "HK",
+                "underground": "false",
+                "height": 117,
+                "type": "building",
+                "min_height": 0,
+                "iso_3166_2": "CN-91",
+                "tilequery": {
+                    "distance": 0,
+                    "geometry": "polygon",
+                    "layer": "building"
+                }
+            }
+        }
+    ]
+}
+```
+
+
+
