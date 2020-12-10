@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+'''
+Send testing data to droneserver
+'''
+
 import asyncio
 import socketio
 import random
