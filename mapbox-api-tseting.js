@@ -10,7 +10,6 @@ import { Client } from '@googlemaps/google-maps-services-js';
 import request from "request-promise";
 
 const gateway="https://api.mapbox.com/v4/mapbox.mapbox-streets-v8/tilequery/";
-const key="access_token=pk.eyJ1IjoiZHFtaWNoYWVsIiwiYSI6ImNrZ2hodGlxMjBiZmszMHBnYmlrdGU4OTEifQ.g_yEmozIITINLVoEtDXCag";
 const locations = [
     "114.23623241544855,22.307360431666915", 
     "114.30739452086544,22.30423718305112",

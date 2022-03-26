@@ -3,7 +3,7 @@
 ## Funcations:
 ### Auto update the RTL alt setting:
 1. When the drone arm, record the home location;
-2. When the drone fly, get the RTL (Return to Land) path and using Google Map API to find the max alt in the path;
+2. When the drone fly, get the RTL (Return to Land) path and using Mapbox API to find the max alt in the path;
 3. update the RTL alt of the drone, if need;
 
 ## Start the server
@@ -80,7 +80,7 @@ https://docs.mapbox.com/api/maps/tilequery/
 
 ### Sample: Get 平善樓 Ping Sin House infomation
 ```sh
-curl "https://api.mapbox.com/v4/mapbox.mapbox-streets-v8/tilequery/114.23623241544855,22.307360431666915.json?radius=10&layers=building&access_token=pk.eyJ1IjoiZHFtaWNoYWVsIiwiYSI6ImNrZ2hodGlxMjBiZmszMHBnYmlrdGU4OTEifQ.g_yEmozIITINLVoEtDXCag"
+curl "https://api.mapbox.com/v4/mapbox.mapbox-streets-v8/tilequery/114.23623241544855,22.307360431666915.json?radius=10&layers=building&access_token=your-mapbox-api-token"
 ```
 ### Return JSON
 ```json
